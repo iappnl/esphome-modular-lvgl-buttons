@@ -15,6 +15,22 @@ esphome:
     version: "1.1"
   platformio_options:
     board_build.flash_mode: dio
+  # GT911 reset/address-select must run AFTER the CH32V003 expander
+  # is up (priority IO=900) but BEFORE the touchscreen component
+  # (priority DATA=600). Priority 800 sits cleanly between them.
+  # Both TP_RST and TP_INT live on the expander, so we cannot meet
+  # the GT911 datasheet's microsecond-level timing - but the chip is
+  # forgiving as long as INT is held low across the RST low->high
+  # edge so it latches address 0x5D.
+  on_boot:
+    - priority: 800
+      then:
+        - switch.turn_off: tp_int_drive   # INT low -> selects 0x5D
+        - switch.turn_off: tp_rst_drive   # RST low (assert reset)
+        - delay: 20ms
+        - switch.turn_on:  tp_rst_drive   # release RST (INT still low)
+        - delay: 10ms
+        - switch.turn_off: tp_int_drive   # leave INT low; addr latched
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -37,7 +53,6 @@ psram:
 # -------------------------------------------
 i2c:
   - id: bus_a
-    setup_priority: 1000
     sda: 15
     scl: 7
     scan: true
@@ -62,7 +77,6 @@ external_components:
 
 waveshare_io_ch32v003:
   - id: wave_io
-    setup_priority: 850
     address: 0x24
     i2c_id: bus_a
 
@@ -88,6 +102,31 @@ switch:
     pin:
       waveshare_io_ch32v003: wave_io
       number: 6  # EXIO6 - BEE_EN
+      mode:
+        output: true
+
+  # Touch reset / interrupt lines exposed as internal switches so the
+  # esphome.on_boot sequence above can drive them. INT is normally an
+  # input to the MCU, but the GT911 only samples it during reset to
+  # latch its I2C address - we drive it as an output for those few
+  # milliseconds and then leave it low.
+  - platform: gpio
+    id: tp_rst_drive
+    internal: true
+    restore_mode: ALWAYS_ON   # released (HIGH) by default
+    pin:
+      waveshare_io_ch32v003: wave_io
+      number: 1   # EXIO1 - TP_RST
+      mode:
+        output: true
+
+  - platform: gpio
+    id: tp_int_drive
+    internal: true
+    restore_mode: ALWAYS_OFF  # low during reset window, then left low
+    pin:
+      waveshare_io_ch32v003: wave_io
+      number: 2   # EXIO2 - TP_INT
       mode:
         output: true
 
@@ -128,18 +167,24 @@ light:
 
 # -------------------------------------------
 # Touchscreen GT911
+#
+# TP_RST (EXIO1) and TP_INT (EXIO2) live behind the CH32V003 expander,
+# so every pin toggle is a full I2C transaction. The GT911's own
+# reset/address-select sequence requires sub-millisecond timing on
+# RST + INT, which the expander cannot reliably hit on a shared bus -
+# that produced intermittent "Calibration error" / FAILED touchscreen
+# at boot.
+#
+# Instead we pre-reset the chip in esphome.on_boot (priority 800,
+# above) using tp_rst_drive / tp_int_drive switches. The GT911 is
+# already alive at address 0x5D by the time this component sets up,
+# so we omit reset_pin / interrupt_pin and just talk to it on I2C.
 # -------------------------------------------
 touchscreen:
   platform: gt911
   i2c_id: bus_a
   id: my_touchscreen
   display: my_display
-  reset_pin:
-    waveshare_io_ch32v003: wave_io
-    number: 1  # EXIO1 - TP_RST
-  interrupt_pin:
-    waveshare_io_ch32v003: wave_io
-    number: 2  # EXIO2 - TP_INT (polled via expander)
 
 # ---------------------------------------------------------
 # Display - ST7701S RGB panel (pinout unchanged from Rev 3)

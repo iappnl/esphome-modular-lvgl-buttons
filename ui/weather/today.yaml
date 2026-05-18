@@ -122,12 +122,28 @@ text_sensor:
     id: weather_summary
     on_value:
       then:
+        - logger.log:
+            level: INFO
+            format: "weather_summary update: %s"
+            args: ['x.c_str()']
         # Update weather summary
         - lvgl.label.update:
             id: weather_summary_today
             text:
               format: "%s"
               args: ['id(weather_summary).state.c_str()']
+
+api:
+  on_client_connected:
+    - if:
+        condition:
+          lambda: 'return (0 == client_info.find("Home Assistant "));'
+        then:
+          - delay: 5s
+          - homeassistant.action:
+              action: homeassistant.update_entity
+              data:
+                entity_id: ${weather_summary}
 
 
 # Weather icons - included automatically

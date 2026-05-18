@@ -44,7 +44,7 @@ globals:
     type: std::string
     initial_value: '"unknown"'
 
-# Fetch weather on startup and every hour
+# Fetch weather on startup, every 15 min, and at the top of each hour
 time:
   - platform: homeassistant
     on_time:
@@ -54,10 +54,19 @@ time:
         then:
           - script.execute: fetch_weather_forecast
 
+interval:
+  - interval: 15min
+    then:
+      - script.execute: fetch_weather_forecast
+
 api:
   on_client_connected:
-    - delay: 3s
-    - script.execute: fetch_weather_forecast
+    - if:
+        condition:
+          lambda: 'return (0 == client_info.find("Home Assistant "));'
+        then:
+          - delay: 5s
+          - script.execute: fetch_weather_forecast
 
 
 script:

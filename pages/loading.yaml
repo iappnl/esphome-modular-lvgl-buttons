@@ -17,6 +17,10 @@ image:
 lvgl:
   top_layer:
     widgets:
+      # Full-screen button = capture-all touch target + background.
+      # All children use align: *_mid so they stay horizontally
+      # centered on any screen width. Vertical positions are pixel
+      # offsets from the top/bottom edges.
       - button:
           id: loading_page
           bg_color: slate_blue_gray
@@ -24,20 +28,21 @@ lvgl:
           width: 100%
           height: 100%
           radius: 0
+          pad_all: 0
           on_press:
             - lvgl.widget.hide: loading_page
           widgets:
             - image:
-                y: 30
                 align: top_mid
+                y: 30
                 src: ha_img
+
             - obj:
                 id: boot_homeassistant
-                y: 180
+                align: center
                 width: 350
-                height: 100
+                height: 60
                 pad_all: 0
-                align: top_mid
                 bg_opa: transp
                 shadow_opa: transp
                 border_opa: transp
@@ -62,13 +67,13 @@ lvgl:
                       indicator:
                         arc_color: misty_blue
                         arc_width: 5
+
             - obj:
                 id: boot_synchronization
-                y: 180
-                width: 300
+                align: center
+                width: 350
                 height: 60
                 pad_all: 0
-                align: top_mid
                 bg_opa: transp
                 shadow_opa: transp
                 border_opa: transp
@@ -85,19 +90,21 @@ lvgl:
                       text: "Sync with HA..."
                   - bar:
                       id: boot_synchronization_bar
-                      y: 0
-                      width: 300
-                      value: 0
                       align: bottom_mid
+                      y: 0
+                      width: 100%
+                      height: 20
+                      value: 0
                       min_value: 0
                       max_value: 100
                       animated: true
                       bg_color: steel_blue
                       indicator:
                         bg_color: misty_blue
+
             - image:
-                y: -30
                 align: bottom_mid
+                y: -30
                 src: esphome_img
 esphome:
   on_boot:

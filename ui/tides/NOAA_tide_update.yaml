@@ -63,15 +63,15 @@ image:
     alpha_channel:
       - file: esphome-modular-lvgl-buttons/ui/tides/assets/images/tide_pointer.svg
         id: tide_pointer
-        resize: 140x62
+        resize: 180x80
 
       - file: esphome-modular-lvgl-buttons/ui/tides/assets/images/high_tide.svg
         id: high_tide
-        resize: 29x32
+        resize: 60x66
 
       - file: esphome-modular-lvgl-buttons/ui/tides/assets/images/low_tide.svg
         id: low_tide
-        resize: 29x32
+        resize: 60x66
 
 font:
   - file: "gfonts://Roboto@700"
@@ -122,7 +122,7 @@ sensor:
         - lvgl.label.update:
             id: high_tide_height
             text:
-              format: "%.2f %s"
+              format: "%.1f %s"
               args: ['id(high_tide_level).state', 'id(noaa_unit_label)']
 
   - platform: template
@@ -135,7 +135,7 @@ sensor:
         - lvgl.label.update:
             id: low_tide_height
             text:
-              format: "%.2f %s"
+              format: "%.1f %s"
               args: ['id(low_tide_level).state', 'id(noaa_unit_label)']
 
   # Mean High Water and Mean Low Water (relative to MLLW datum)

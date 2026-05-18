@@ -29,6 +29,12 @@ substitutions:
   display_backlight_timeout_always_enabled: "false"
   display_backlight_timeout_initial: ".12"
 
+globals:
+  - id: boot_restart_published
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
 sun:
   latitude: !secret latitude
   longitude: !secret longitude
@@ -75,11 +81,12 @@ time:
     on_time_sync:
       - script.execute: time_update
 
-      # Update last restart time (only once)
+      # Update last restart time (only once, on first sync after boot)
       - if:
           condition:
-            lambda: 'return id(device_last_restart).state == "";'
+            lambda: 'return id(boot_restart_published) == false;'
           then:
+            - lambda: 'id(boot_restart_published) = true;'
             - text_sensor.template.publish:
                 id: device_last_restart
                 state: !lambda 'return id(system_time).now().strftime("%a %d %b %Y - %I:%M:%S %p");'

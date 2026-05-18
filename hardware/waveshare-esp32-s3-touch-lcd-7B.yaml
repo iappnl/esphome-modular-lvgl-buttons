@@ -162,3 +162,4 @@ display:
 # Special LVGL settings required for this display
 lvgl:
   rotation: ${rotation | default("0")}
+  buffer_size: 25%

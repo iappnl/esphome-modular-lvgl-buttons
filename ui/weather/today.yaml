@@ -118,7 +118,7 @@ text_sensor:
               args: ['id(weather_visibility).state.c_str()']
 
   - platform: homeassistant
-    entity_id: ${weather_summary}
+    entity_id: ${weather_summary | default("sensor.none")}
     id: weather_summary
     on_value:
       then:

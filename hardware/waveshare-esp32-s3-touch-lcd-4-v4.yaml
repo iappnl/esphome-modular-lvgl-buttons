@@ -193,7 +193,7 @@ spi:
   - id: lcd_spi
     clk_pin: GPIO2
     mosi_pin: GPIO1
-    
+
 display:
   - platform: mipi_rgb
     setup_priority: 750
@@ -203,7 +203,7 @@ display:
       waveshare_io_ch32v003: wave_io
       number: 3 # EXIO3 - LCD_RST
     pixel_mode: 18bit
- 
+
 # Special LVGL settings required for this display
 # Rev 4 panel is physically rotated 180° vs Rev 3 - default to 180
 lvgl:

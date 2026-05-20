@@ -36,3 +36,5 @@ rules:
 ignore: |
   .git/
   secrets.yaml
+  **/._*
+  ._*

@@ -37,22 +37,22 @@ logger:
   logs:
     lvgl: info
   hardware_uart: UART0
-  
+
 # Some screens need little_endian byte order and some need big_endian
 # this sets the byte order for all the images loaded in this file and the packages as well
 image:
   defaults:
-    byte_order: little_endian  
+    byte_order: little_endian
 
 # Time update script - This is run once per second. Use it to update any time related labels.
 script:
   - id: time_update
     then:
-        # The format %I:%M %p will display the time in a 12-hour format with "am" or "pm" included  
+        # The format %I:%M %p will display the time in a 12-hour format with "am" or "pm" included
       - lvgl.label.update:
           id: time_label
-          text: !lambda 'return id(system_time).now().strftime("%l:%M %P");'    
-          
+          text: !lambda 'return id(system_time).now().strftime("%l:%M %P");'
+
 packages:
   # Generic configuration for ESP32 screens
   # SDL has no Wi-Fi
@@ -153,7 +153,7 @@ lvgl:
                     align: center
                     text_color: white
                     text: "Cell 3,7"
-  
+
 # If you want to use other icons add them to the list here
 font:
   # http://materialdesignicons.com/cdn/7.4.47/

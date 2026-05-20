@@ -34,7 +34,7 @@ lvgl:
         widgets:
         - button:
             id: button_${uid}
-            bg_opa: ${bg_opa | default("COVER")}                          
+            bg_opa: ${bg_opa | default("COVER")}
             clickable: false
             widgets:
             - label:

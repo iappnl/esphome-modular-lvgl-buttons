@@ -37,16 +37,16 @@ waveshare_io_ch32v003:
   - id: wave_io
     address: 0x24
     i2c_id: bus_a
-    
+
 power_supply:
   - id: wave_io_backlight_enable
     pin:
-      waveshare_io_ch32v003: wave_io 
+      waveshare_io_ch32v003: wave_io
       number: 2
       mode:
         output: true
     enable_time: 0ms
-    keep_on_time: 0ms    
+    keep_on_time: 0ms
 
 # -------------------------------------------
 # LCD Back light

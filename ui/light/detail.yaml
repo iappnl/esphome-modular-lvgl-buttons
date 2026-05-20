@@ -704,4 +704,3 @@ script:
       lv_obj_set_style_shadow_spread(id(${uid}_bulb_btn), spread, 0);
       lv_obj_set_style_shadow_width(id(${uid}_bulb_btn), width, 0);
       lv_obj_set_style_text_color(id(${uid}_bulb_icon), lv_color_hex(color), 0);
-

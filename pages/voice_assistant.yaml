@@ -12,7 +12,7 @@ lvgl:
         - button:
             id: va_mic_button
             align: CENTER
-            y: -80
+            y: 0
             width: 220
             height: 220
             radius: 110
@@ -40,7 +40,7 @@ lvgl:
         - label:
             id: va_status_label
             align: CENTER
-            y: 90
+            y: 160
             text: "Idle"
             text_font: $text_font
             text_color: white

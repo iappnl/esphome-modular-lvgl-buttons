@@ -1,6 +1,7 @@
 ---
 # Voice Assistant full-screen page
-# Shows microphone status and provides a tap-to-talk button.
+# Three concentric circles simulate a radial gradient (dark edge → bright centre).
+# A transparent button overlay handles taps and shows the mic icon.
 # Designed for use with hardware/media_player-voice_assistant.yaml.
 
 globals:
@@ -17,28 +18,70 @@ script:
             lambda: 'return id(va_is_pulsing);'
           then:
             - lambda: |-
-                int size = 190 + (rand() % 60);    // 190–250px
-                int glow = 15  + (rand() % 35);    // 15–50px shadow spread
-                lv_obj_set_width(id(va_mic_button), size);
-                lv_obj_set_height(id(va_mic_button), size);
-                lv_obj_set_style_radius(id(va_mic_button), size / 2, 0);
-                lv_obj_set_style_shadow_width(id(va_mic_button), glow, 0);
-                lv_obj_align(id(va_mic_button), LV_ALIGN_CENTER, 0, 0);
+                int s = 190 + (rand() % 60);    // outer 190–250px
+                int m = s * 65 / 100;            // mid  ~65%
+                int i = s * 35 / 100;            // inner ~35%
+                int glow = 15 + (rand() % 35);   // shadow 15–50px
+                lv_obj_set_width(id(va_sphere_outer),  s); lv_obj_set_height(id(va_sphere_outer),  s); lv_obj_set_style_radius(id(va_sphere_outer),  s/2, 0); lv_obj_align(id(va_sphere_outer),  LV_ALIGN_CENTER, 0, 0);
+                lv_obj_set_width(id(va_sphere_mid),    m); lv_obj_set_height(id(va_sphere_mid),    m); lv_obj_set_style_radius(id(va_sphere_mid),    m/2, 0); lv_obj_align(id(va_sphere_mid),    LV_ALIGN_CENTER, 0, 0);
+                lv_obj_set_width(id(va_sphere_inner),  i); lv_obj_set_height(id(va_sphere_inner),  i); lv_obj_set_style_radius(id(va_sphere_inner),  i/2, 0); lv_obj_align(id(va_sphere_inner),  LV_ALIGN_CENTER, 0, 0);
+                lv_obj_set_width(id(va_mic_button),    s); lv_obj_set_height(id(va_mic_button),    s); lv_obj_set_style_radius(id(va_mic_button),    s/2, 0); lv_obj_align(id(va_mic_button),    LV_ALIGN_CENTER, 0, 0);
+                lv_obj_set_style_shadow_width(id(va_sphere_outer), glow, 0);
             - delay: !lambda 'return 20 + (rand() % 80);'
-      # Restore on stop
+      # Restore original size when pulsing stops
       - lambda: |-
-          lv_obj_set_width(id(va_mic_button), 220);
-          lv_obj_set_height(id(va_mic_button), 220);
-          lv_obj_set_style_radius(id(va_mic_button), 110, 0);
-          lv_obj_set_style_shadow_width(id(va_mic_button), 0, 0);
-          lv_obj_align(id(va_mic_button), LV_ALIGN_CENTER, 0, 0);
+          lv_obj_set_width(id(va_sphere_outer), 220); lv_obj_set_height(id(va_sphere_outer), 220); lv_obj_set_style_radius(id(va_sphere_outer), 110, 0); lv_obj_align(id(va_sphere_outer), LV_ALIGN_CENTER, 0, 0); lv_obj_set_style_shadow_width(id(va_sphere_outer), 0, 0);
+          lv_obj_set_width(id(va_sphere_mid),   143); lv_obj_set_height(id(va_sphere_mid),   143); lv_obj_set_style_radius(id(va_sphere_mid),    71, 0); lv_obj_align(id(va_sphere_mid),   LV_ALIGN_CENTER, 0, 0);
+          lv_obj_set_width(id(va_sphere_inner),  77); lv_obj_set_height(id(va_sphere_inner),  77); lv_obj_set_style_radius(id(va_sphere_inner),  38, 0); lv_obj_align(id(va_sphere_inner), LV_ALIGN_CENTER, 0, 0);
+          lv_obj_set_width(id(va_mic_button),   220); lv_obj_set_height(id(va_mic_button),   220); lv_obj_set_style_radius(id(va_mic_button),   110, 0); lv_obj_align(id(va_mic_button),   LV_ALIGN_CENTER, 0, 0);
 
 lvgl:
   pages:
     - id: main_page
       bg_color: black
       widgets:
-        # Circular mic button — centred, gradient gives inner-glow sphere look
+        # --- Radial gradient sphere: 3 concentric circles ---
+        # Outer ring (darkest)
+        - obj:
+            id: va_sphere_outer
+            align: CENTER
+            y: 0
+            width: 220
+            height: 220
+            radius: 110
+            bg_color: 0x1E1E1E
+            shadow_color: gray
+            shadow_width: 0
+            shadow_opa: 80%
+            shadow_spread: 8
+            border_opa: transp
+            clickable: false
+
+        # Mid ring
+        - obj:
+            id: va_sphere_mid
+            align: CENTER
+            y: 0
+            width: 143
+            height: 143
+            radius: 71
+            bg_color: 0x333333
+            border_opa: transp
+            clickable: false
+
+        # Inner bright centre
+        - obj:
+            id: va_sphere_inner
+            align: CENTER
+            y: 0
+            width: 77
+            height: 77
+            radius: 38
+            bg_color: 0x555555
+            border_opa: transp
+            clickable: false
+
+        # Transparent overlay — tap target + mic icon
         - button:
             id: va_mic_button
             align: CENTER
@@ -46,15 +89,8 @@ lvgl:
             width: 220
             height: 220
             radius: 110
-            # Vertical gradient: lighter centre-top → dark edge-bottom
-            bg_color: 0x555555
-            bg_grad_color: very_dark_gray
-            bg_grad_dir: VER
-            # Glow (shadow spreads outward — creates the sphere halo)
-            shadow_color: gray
-            shadow_width: 0
-            shadow_opa: 80%
-            shadow_spread: 8
+            bg_opa: transp
+            shadow_opa: transp
             border_opa: transp
             pad_all: 0
             on_click:
@@ -73,7 +109,7 @@ lvgl:
                   text_font: $icon_font
                   text_color: white
 
-        # Status label just below the button
+        # Status label just below the sphere
         - label:
             id: va_status_label
             align: CENTER
@@ -94,76 +130,75 @@ lvgl:
 
 voice_assistant:
   on_listening:
-    - lambda: 'id(va_is_pulsing) = false;'
-    - script.stop: va_pulse_script
     - lambda: |-
-        lv_obj_set_width(id(va_mic_button), 220);
-        lv_obj_set_height(id(va_mic_button), 220);
-        lv_obj_set_style_radius(id(va_mic_button), 110, 0);
-        lv_obj_set_style_shadow_width(id(va_mic_button), 20, 0);
-        lv_obj_align(id(va_mic_button), LV_ALIGN_CENTER, 0, 0);
-    - lvgl.widget.update:
-        id: va_mic_button
-        bg_color: 0xFF6666
-        bg_grad_color: red
-        bg_grad_dir: VER
-        shadow_color: red
+        id(va_is_pulsing) = false;
+        // Restore size (in case pulsing was active)
+        lv_obj_set_width(id(va_sphere_outer), 220); lv_obj_set_height(id(va_sphere_outer), 220); lv_obj_set_style_radius(id(va_sphere_outer), 110, 0); lv_obj_align(id(va_sphere_outer), LV_ALIGN_CENTER, 0, 0);
+        lv_obj_set_width(id(va_sphere_mid),   143); lv_obj_set_height(id(va_sphere_mid),   143); lv_obj_set_style_radius(id(va_sphere_mid),    71, 0); lv_obj_align(id(va_sphere_mid),   LV_ALIGN_CENTER, 0, 0);
+        lv_obj_set_width(id(va_sphere_inner),  77); lv_obj_set_height(id(va_sphere_inner),  77); lv_obj_set_style_radius(id(va_sphere_inner),  38, 0); lv_obj_align(id(va_sphere_inner), LV_ALIGN_CENTER, 0, 0);
+        lv_obj_set_width(id(va_mic_button),   220); lv_obj_set_height(id(va_mic_button),   220); lv_obj_set_style_radius(id(va_mic_button),   110, 0); lv_obj_align(id(va_mic_button),   LV_ALIGN_CENTER, 0, 0);
+        // Red: dark edge → bright centre
+        lv_obj_set_style_bg_color(id(va_sphere_outer), lv_color_make(0x77, 0x00, 0x00), 0);
+        lv_obj_set_style_bg_color(id(va_sphere_mid),   lv_color_make(0xBB, 0x22, 0x22), 0);
+        lv_obj_set_style_bg_color(id(va_sphere_inner), lv_color_make(0xFF, 0x77, 0x77), 0);
+        lv_obj_set_style_shadow_color(id(va_sphere_outer), lv_color_make(0xFF, 0x00, 0x00), 0);
+        lv_obj_set_style_shadow_width(id(va_sphere_outer), 20, 0);
     - lvgl.label.update:
         id: va_status_label
         text: "Listening..."
   on_stt_vad_end:
-    - lvgl.widget.update:
-        id: va_mic_button
-        bg_color: 0x77AAFF
-        bg_grad_color: ep_blue
-        bg_grad_dir: VER
-        shadow_color: ep_blue
+    - lambda: |-
+        // Blue: dark edge → bright centre
+        lv_obj_set_style_bg_color(id(va_sphere_outer), lv_color_make(0x00, 0x22, 0x66), 0);
+        lv_obj_set_style_bg_color(id(va_sphere_mid),   lv_color_make(0x22, 0x55, 0xBB), 0);
+        lv_obj_set_style_bg_color(id(va_sphere_inner), lv_color_make(0x77, 0xAA, 0xFF), 0);
+        lv_obj_set_style_shadow_color(id(va_sphere_outer), lv_color_make(0x00, 0x66, 0xFF), 0);
+        id(va_is_pulsing) = true;
+    - script.execute: va_pulse_script
     - lvgl.label.update:
         id: va_status_label
         text: "Thinking..."
-    - lambda: 'id(va_is_pulsing) = true;'
-    - script.execute: va_pulse_script
   on_tts_start:
-    - lvgl.widget.update:
-        id: va_mic_button
-        bg_color: 0x77DD99
-        bg_grad_color: ep_green
-        bg_grad_dir: VER
-        shadow_color: ep_green
+    - lambda: |-
+        // Green: dark edge → bright centre
+        lv_obj_set_style_bg_color(id(va_sphere_outer), lv_color_make(0x00, 0x33, 0x22), 0);
+        lv_obj_set_style_bg_color(id(va_sphere_mid),   lv_color_make(0x1A, 0x88, 0x55), 0);
+        lv_obj_set_style_bg_color(id(va_sphere_inner), lv_color_make(0x66, 0xEE, 0x99), 0);
+        lv_obj_set_style_shadow_color(id(va_sphere_outer), lv_color_make(0x00, 0xCC, 0x55), 0);
+        id(va_is_pulsing) = true;
+    - script.execute: va_pulse_script
     - lvgl.label.update:
         id: va_status_label
         text: "Speaking..."
-    - lambda: 'id(va_is_pulsing) = true;'
-    - script.execute: va_pulse_script
   on_end:
-    - lambda: 'id(va_is_pulsing) = false;'
-    - lvgl.widget.update:
-        id: va_mic_button
-        bg_color: 0x555555
-        bg_grad_color: very_dark_gray
-        bg_grad_dir: VER
-        shadow_color: gray
+    - lambda: |-
+        id(va_is_pulsing) = false;
+        // Gray: dark edge → bright centre
+        lv_obj_set_style_bg_color(id(va_sphere_outer), lv_color_make(0x1E, 0x1E, 0x1E), 0);
+        lv_obj_set_style_bg_color(id(va_sphere_mid),   lv_color_make(0x33, 0x33, 0x33), 0);
+        lv_obj_set_style_bg_color(id(va_sphere_inner), lv_color_make(0x55, 0x55, 0x55), 0);
+        lv_obj_set_style_shadow_color(id(va_sphere_outer), lv_color_make(0x88, 0x88, 0x88), 0);
     - lvgl.label.update:
         id: va_status_label
         text: "Idle"
   on_error:
-    - lambda: 'id(va_is_pulsing) = false;'
-    - lvgl.widget.update:
-        id: va_mic_button
-        bg_color: 0xFFAA55
-        bg_grad_color: ep_orange
-        bg_grad_dir: VER
-        shadow_color: ep_orange
+    - lambda: |-
+        id(va_is_pulsing) = false;
+        // Orange: dark edge → bright centre
+        lv_obj_set_style_bg_color(id(va_sphere_outer), lv_color_make(0x66, 0x33, 0x00), 0);
+        lv_obj_set_style_bg_color(id(va_sphere_mid),   lv_color_make(0xBB, 0x66, 0x00), 0);
+        lv_obj_set_style_bg_color(id(va_sphere_inner), lv_color_make(0xFF, 0xAA, 0x44), 0);
+        lv_obj_set_style_shadow_color(id(va_sphere_outer), lv_color_make(0xFF, 0x88, 0x00), 0);
+        lv_obj_set_style_shadow_width(id(va_sphere_outer), 20, 0);
     - lvgl.label.update:
         id: va_status_label
         text: "Error"
     - delay: 2s
-    - lvgl.widget.update:
-        id: va_mic_button
-        bg_color: 0x555555
-        bg_grad_color: very_dark_gray
-        bg_grad_dir: VER
-        shadow_color: gray
+    - lambda: |-
+        lv_obj_set_style_bg_color(id(va_sphere_outer), lv_color_make(0x1E, 0x1E, 0x1E), 0);
+        lv_obj_set_style_bg_color(id(va_sphere_mid),   lv_color_make(0x33, 0x33, 0x33), 0);
+        lv_obj_set_style_bg_color(id(va_sphere_inner), lv_color_make(0x55, 0x55, 0x55), 0);
+        lv_obj_set_style_shadow_width(id(va_sphere_outer), 0, 0);
     - lvgl.label.update:
         id: va_status_label
         text: "Idle"

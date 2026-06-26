@@ -8,9 +8,9 @@ lvgl:
     - id: main_page
       bg_color: black
       widgets:
-        # Animated Sphere Container (replaces the static button)
-        - obj:
-            id: va_pulsing_sphere
+        # Circular mic button — centred on screen
+        - button:
+            id: va_mic_button
             align: CENTER
             y: 0
             width: 220
@@ -20,18 +20,6 @@ lvgl:
             shadow_opa: transp
             border_opa: transp
             pad_all: 0
-            # Added a basic pulsation animation targeting the scale property.
-            animation:
-              name: va_pulsing_anim
-              easing: ease-in-out
-              duration: 2s
-              // This anim defines how it pulsates when nothing else changes its state
-              steps:
-                0: {scale: 1.0, alpha: 0.9}
-                0.5: {scale: 1.08, alpha: 1.0}
-                1: {scale: 0.92, alpha: 0.9}
-                1.5: {scale: 1.05, alpha: 0.95}
-
             on_click:
               - if:
                   condition:
@@ -48,7 +36,7 @@ lvgl:
                   text_font: $icon_font
                   text_color: white
 
-        # Status label below the sphere/button area
+        # Status label just below the button
         - label:
             id: va_status_label
             align: CENTER
@@ -57,7 +45,7 @@ lvgl:
             text_font: $text_font
             text_color: white
 
-        # Connection status — shown only when HA is disconnected
+        # Shown only when HA is disconnected
         - label:
             id: va_connection_label
             align: BOTTOM_MID
@@ -67,67 +55,57 @@ lvgl:
             text_color: gray
             hidden: true
 
-# Extend voice_assistant callbacks to update the UI animation/state
+# Extend voice_assistant callbacks to update the UI
 voice_assistant:
   on_listening:
-    - lvgl.animation.set_target:
-        id: va_pulsing_sphere
-        property: bg_color
-        value: red # Solid color for high visibility state
+    - lvgl.widget.update:
+        id: va_mic_button
+        bg_color: red
     - lvgl.label.update:
         id: va_status_label
         text: "Listening..."
   on_stt_vad_end:
-    - lvgl.animation.set_target:
-        id: va_pulsing_sphere
-        property: bg_color
-        value: ep_blue # Blue when thinking
+    - lvgl.widget.update:
+        id: va_mic_button
+        bg_color: ep_blue
     - lvgl.label.update:
         id: va_status_label
         text: "Thinking..."
   on_tts_start:
-    - lvgl.animation.set_target:
-        id: va_pulsing_sphere
-        property: bg_color
-        value: ep_green # Green when speaking
+    - lvgl.widget.update:
+        id: va_mic_button
+        bg_color: ep_green
     - lvgl.label.update:
         id: va_status_label
         text: "Speaking..."
   on_end:
-    # Revert to pulsation animation/base color on idle
-    - lvgl.animation.set_target:
-        id: va_pulsing_sphere
-        property: bg_color
-        value: very_dark_gray
+    - lvgl.widget.update:
+        id: va_mic_button
+        bg_color: very_dark_gray
     - lvgl.label.update:
         id: va_status_label
         text: "Idle"
   on_error:
-    - lvgl.animation.set_target:
-        id: va_pulsing_sphere
-        property: bg_color
-        value: ep_orange # Orange on error
+    - lvgl.widget.update:
+        id: va_mic_button
+        bg_color: ep_orange
     - lvgl.label.update:
         id: va_status_label
         text: "Error"
+    - delay: 2s
+    - lvgl.widget.update:
+        id: va_mic_button
+        bg_color: very_dark_gray
+    - lvgl.label.update:
+        id: va_status_label
+        text: "Idle"
   on_client_connected:
     - lvgl.widget.hide: va_connection_label
-    # Reset the animation state and label
-    - lvgl.animation.set_target:
-        id: va_pulsing_sphere
-        property: scale
-        value: 1.0
-    - lvgl.animation.restart:
-        id: va_pulsing_anim
     - lvgl.label.update:
         id: va_status_label
         text: "Idle"
   on_client_disconnected:
     - lvgl.widget.show: va_connection_label
-    - lvgl.animation.set_target:
-        id: va_pulsing_sphere
-        property: scale
-        value: 0.8 # Make it look dim/disabled
     - lvgl.label.update:
         id: va_status_label
         text: "Disconnected"

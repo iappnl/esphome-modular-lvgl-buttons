@@ -5,7 +5,7 @@
 
 lvgl:
   pages:
-    - id: voice_assistant_page
+    - id: main_page
       bg_color: black
       widgets:
         # Mic button — circular, centred in upper half of screen

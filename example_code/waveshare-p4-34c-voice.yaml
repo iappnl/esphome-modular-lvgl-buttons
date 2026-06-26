@@ -1,0 +1,129 @@
+---
+# Waveshare ESP32-P4 WiFi6 Touch LCD 3.4C — Voice Assistant
+#
+# Prerequisites:
+#   - ESPHome 2026.5.0+
+#   - secrets.yaml alongside this file with:
+#       wifi_ssid, wifi_password, api_encryption_key, ota_password
+#   - esphome-modular-lvgl-buttons/ cloned in the same directory
+
+substitutions:
+  # ----- Fonts & icons -----
+  icon_font: mdi_icons_40
+  text_font: nunito_24
+
+  # ----- Theme colours -----
+  text_color: white
+  bg_color: black
+  button_on_color: ep_orange
+  button_off_color: very_dark_gray
+  icon_on_color: yellow
+  icon_off_color: gray
+  label_on_color: white
+  label_off_color: gray
+  button_text_color: white
+
+  # ----- Backlight -----
+  display_daytime_brightness: "100%"
+  display_nighttime_brightness: "30%"
+  display_night_hour: "22"        # dim at 22:00
+  display_night_minute: "0"
+  display_backlight_timeout_always_enabled: "false"
+  display_backlight_timeout_initial: "5"  # minutes before dimming
+
+  # ----- Popup system -----
+  popup_timeout_seconds: "120"
+
+esphome:
+  name: waveshare-p4-voice
+  friendly_name: "Voice Assistant"
+  on_boot:
+    # Show loading page first (handled by loading.yaml)
+    - priority: 400
+      then:
+        - script.execute: update_loading_page
+
+logger:
+  level: debug
+  logs:
+    lvgl: info
+  hardware_uart: UART0
+
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "Voice Assistant AP"
+    password: !secret ota_password
+
+# Images default byte order for this display
+image:
+  defaults:
+    byte_order: little_endian
+
+# MDI icon font — list every glyph used across all included pages/ui files
+font:
+  - file: "https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/fonts/materialdesignicons-webfont.ttf"
+    id: mdi_icons_40
+    size: 40
+    bpp: 8
+    glyphs:
+      - $mdi_microphone
+      - $mdi_microphone_off
+      - $mdi_wifi
+      - $mdi_wifi_off
+      - $mdi_information_outline
+      - $mdi_restart
+      - $mdi_close
+
+# Time update script — extend with !extend time_update if you need per-minute updates
+script:
+  - id: time_update
+    then:
+      - lambda: |-
+          // No operation
+
+packages:
+  # Core connectivity
+  wifi_pkg:    !include esphome-modular-lvgl-buttons/common/wifi.yaml
+  ota_screen:  !include esphome-modular-lvgl-buttons/common/ota.yaml
+  sensors:     !include esphome-modular-lvgl-buttons/common/sensors_base.yaml
+
+  # Styles, themes, fonts, colours (1000s of MDI glyphs)
+  theme:       !include esphome-modular-lvgl-buttons/common/theme/index.yaml
+
+  # Backlight + time sync from HA
+  backlight:   !include esphome-modular-lvgl-buttons/common/backlight_time.yaml
+
+  # Popup system (floating overlays)
+  popup_system: !include esphome-modular-lvgl-buttons/ui/popup/popup_system.yaml
+
+  # Hardware: display, touch, audio (ES8311/ES7210), WiFi via C6
+  hardware: !include
+    file: esphome-modular-lvgl-buttons/hardware/waveshare-esp32-p4-wifi6-touch-lcd-3.4c.yaml
+    vars:
+      rotation: "0"
+
+  # Media player + voice assistant (sendspin, wake word, mic, speaker)
+  media_voice: !include esphome-modular-lvgl-buttons/hardware/media_player-voice_assistant.yaml
+
+  # Boot splash screen
+  loading_screen: !include esphome-modular-lvgl-buttons/pages/loading.yaml
+
+  # Device info page (WiFi, IP, MAC — swipe or navigate to it)
+  info_screen: !include esphome-modular-lvgl-buttons/pages/info.yaml
+
+  # Voice assistant UI page (microphone button + status)
+  voice_ui: !include esphome-modular-lvgl-buttons/pages/voice_assistant.yaml
+
+# LVGL global settings for this display
+lvgl:
+  buffer_size: 100%

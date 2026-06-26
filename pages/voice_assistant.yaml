@@ -3,12 +3,39 @@
 # Shows microphone status and provides a tap-to-talk button.
 # Designed for use with hardware/media_player-voice_assistant.yaml.
 
+globals:
+  - id: va_is_pulsing
+    type: bool
+    initial_value: 'false'
+
+script:
+  - id: va_pulse_script
+    mode: restart
+    then:
+      - while:
+          condition:
+            lambda: 'return id(va_is_pulsing);'
+          then:
+            - lambda: |-
+                int size = 160 + (rand() % 120);  // 160–280px random pulse
+                lv_obj_set_width(id(va_mic_button), size);
+                lv_obj_set_height(id(va_mic_button), size);
+                lv_obj_set_style_radius(id(va_mic_button), size / 2, 0);
+                lv_obj_align(id(va_mic_button), LV_ALIGN_CENTER, 0, 0);
+            - delay: !lambda 'return 80 + (rand() % 350);'
+      # Restore original size when pulsing stops
+      - lambda: |-
+          lv_obj_set_width(id(va_mic_button), 220);
+          lv_obj_set_height(id(va_mic_button), 220);
+          lv_obj_set_style_radius(id(va_mic_button), 110, 0);
+          lv_obj_align(id(va_mic_button), LV_ALIGN_CENTER, 0, 0);
+
 lvgl:
   pages:
     - id: main_page
       bg_color: black
       widgets:
-        # Circular mic button — centred on screen
+        # Circular mic button — centred on screen, pulses when active
         - button:
             id: va_mic_button
             align: CENTER
@@ -58,6 +85,13 @@ lvgl:
 # Extend voice_assistant callbacks to update the UI
 voice_assistant:
   on_listening:
+    - lambda: 'id(va_is_pulsing) = false;'
+    - script.stop: va_pulse_script
+    - lambda: |-
+        lv_obj_set_width(id(va_mic_button), 220);
+        lv_obj_set_height(id(va_mic_button), 220);
+        lv_obj_set_style_radius(id(va_mic_button), 110, 0);
+        lv_obj_align(id(va_mic_button), LV_ALIGN_CENTER, 0, 0);
     - lvgl.widget.update:
         id: va_mic_button
         bg_color: red
@@ -71,6 +105,8 @@ voice_assistant:
     - lvgl.label.update:
         id: va_status_label
         text: "Thinking..."
+    - lambda: 'id(va_is_pulsing) = true;'
+    - script.execute: va_pulse_script
   on_tts_start:
     - lvgl.widget.update:
         id: va_mic_button
@@ -78,7 +114,10 @@ voice_assistant:
     - lvgl.label.update:
         id: va_status_label
         text: "Speaking..."
+    - lambda: 'id(va_is_pulsing) = true;'
+    - script.execute: va_pulse_script
   on_end:
+    - lambda: 'id(va_is_pulsing) = false;'
     - lvgl.widget.update:
         id: va_mic_button
         bg_color: very_dark_gray
@@ -86,6 +125,7 @@ voice_assistant:
         id: va_status_label
         text: "Idle"
   on_error:
+    - lambda: 'id(va_is_pulsing) = false;'
     - lvgl.widget.update:
         id: va_mic_button
         bg_color: ep_orange
@@ -105,6 +145,7 @@ voice_assistant:
         id: va_status_label
         text: "Idle"
   on_client_disconnected:
+    - lambda: 'id(va_is_pulsing) = false;'
     - lvgl.widget.show: va_connection_label
     - lvgl.label.update:
         id: va_status_label

@@ -30,7 +30,7 @@ script:
             - delay: !lambda 'return 20 + (rand() % 80);'
       # Restore original size when pulsing stops
       - lambda: |-
-          lv_obj_set_width(id(va_sphere_outer), 220); lv_obj_set_height(id(va_sphere_outer), 220); lv_obj_set_style_radius(id(va_sphere_outer), 110, 0); lv_obj_align(id(va_sphere_outer), LV_ALIGN_CENTER, 0, 0); lv_obj_set_style_shadow_width(id(va_sphere_outer), 0, 0);
+          lv_obj_set_width(id(va_sphere_outer), 220); lv_obj_set_height(id(va_sphere_outer), 220); lv_obj_set_style_radius(id(va_sphere_outer), 110, 0); lv_obj_align(id(va_sphere_outer), LV_ALIGN_CENTER, 0, 0); lv_obj_set_style_shadow_width(id(va_sphere_outer), 15, 0);
           lv_obj_set_width(id(va_sphere_mid),   143); lv_obj_set_height(id(va_sphere_mid),   143); lv_obj_set_style_radius(id(va_sphere_mid),    71, 0); lv_obj_align(id(va_sphere_mid),   LV_ALIGN_CENTER, 0, 0);
           lv_obj_set_width(id(va_sphere_inner),  77); lv_obj_set_height(id(va_sphere_inner),  77); lv_obj_set_style_radius(id(va_sphere_inner),  38, 0); lv_obj_align(id(va_sphere_inner), LV_ALIGN_CENTER, 0, 0);
           lv_obj_set_width(id(va_mic_button),   220); lv_obj_set_height(id(va_mic_button),   220); lv_obj_set_style_radius(id(va_mic_button),   110, 0); lv_obj_align(id(va_mic_button),   LV_ALIGN_CENTER, 0, 0);
@@ -51,7 +51,7 @@ lvgl:
             radius: 110
             bg_color: 0x1E1E1E
             shadow_color: gray
-            shadow_width: 0
+            shadow_width: 15
             shadow_opa: 80%
             shadow_spread: 8
             border_opa: transp
@@ -178,6 +178,7 @@ voice_assistant:
         lv_obj_set_style_bg_color(id(va_sphere_mid),   lv_color_make(0x33, 0x33, 0x33), 0);
         lv_obj_set_style_bg_color(id(va_sphere_inner), lv_color_make(0x55, 0x55, 0x55), 0);
         lv_obj_set_style_shadow_color(id(va_sphere_outer), lv_color_make(0x88, 0x88, 0x88), 0);
+        lv_obj_set_style_shadow_width(id(va_sphere_outer), 15, 0);
     - lvgl.label.update:
         id: va_status_label
         text: "Idle"
@@ -198,7 +199,8 @@ voice_assistant:
         lv_obj_set_style_bg_color(id(va_sphere_outer), lv_color_make(0x1E, 0x1E, 0x1E), 0);
         lv_obj_set_style_bg_color(id(va_sphere_mid),   lv_color_make(0x33, 0x33, 0x33), 0);
         lv_obj_set_style_bg_color(id(va_sphere_inner), lv_color_make(0x55, 0x55, 0x55), 0);
-        lv_obj_set_style_shadow_width(id(va_sphere_outer), 0, 0);
+        lv_obj_set_style_shadow_color(id(va_sphere_outer), lv_color_make(0x88, 0x88, 0x88), 0);
+        lv_obj_set_style_shadow_width(id(va_sphere_outer), 15, 0);
     - lvgl.label.update:
         id: va_status_label
         text: "Idle"

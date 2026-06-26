@@ -1,0 +1,112 @@
+---
+# Voice Assistant full-screen page
+# Shows microphone status and provides a tap-to-talk button.
+# Designed for use with hardware/media_player-voice_assistant.yaml.
+
+lvgl:
+  pages:
+    - id: voice_assistant_page
+      bg_color: black
+      widgets:
+        # Mic button — circular, centred in upper half of screen
+        - button:
+            id: va_mic_button
+            align: CENTER
+            y: -80
+            width: 220
+            height: 220
+            radius: 110
+            bg_color: very_dark_gray
+            shadow_opa: transp
+            border_opa: transp
+            pad_all: 0
+            on_click:
+              - if:
+                  condition:
+                    - voice_assistant.is_running:
+                  then:
+                    - voice_assistant.stop:
+                  else:
+                    - voice_assistant.start:
+            widgets:
+              - label:
+                  id: va_mic_icon
+                  align: CENTER
+                  text: $mdi_microphone
+                  text_font: $icon_font
+                  text_color: white
+
+        # Status label below the button
+        - label:
+            id: va_status_label
+            align: CENTER
+            y: 90
+            text: "Idle"
+            text_font: $text_font
+            text_color: white
+
+        # Connection status — shown only when HA is disconnected
+        - label:
+            id: va_connection_label
+            align: BOTTOM_MID
+            y: -40
+            text: "Not connected to Home Assistant"
+            text_font: $text_font
+            text_color: gray
+            hidden: true
+
+# Extend voice_assistant callbacks to update the UI
+# ESPHome merges these action lists with the ones in media_player-voice_assistant.yaml
+voice_assistant:
+  on_listening:
+    - lvgl.widget.update:
+        id: va_mic_button
+        bg_color: red
+    - lvgl.label.update:
+        id: va_status_label
+        text: "Listening..."
+  on_stt_vad_end:
+    - lvgl.widget.update:
+        id: va_mic_button
+        bg_color: ep_blue
+    - lvgl.label.update:
+        id: va_status_label
+        text: "Thinking..."
+  on_tts_start:
+    - lvgl.widget.update:
+        id: va_mic_button
+        bg_color: ep_green
+    - lvgl.label.update:
+        id: va_status_label
+        text: "Speaking..."
+  on_end:
+    - lvgl.widget.update:
+        id: va_mic_button
+        bg_color: very_dark_gray
+    - lvgl.label.update:
+        id: va_status_label
+        text: "Idle"
+  on_error:
+    - lvgl.widget.update:
+        id: va_mic_button
+        bg_color: ep_orange
+    - lvgl.label.update:
+        id: va_status_label
+        text: "Error"
+    - delay: 2s
+    - lvgl.widget.update:
+        id: va_mic_button
+        bg_color: very_dark_gray
+    - lvgl.label.update:
+        id: va_status_label
+        text: "Idle"
+  on_client_connected:
+    - lvgl.widget.hide: va_connection_label
+    - lvgl.label.update:
+        id: va_status_label
+        text: "Idle"
+  on_client_disconnected:
+    - lvgl.widget.show: va_connection_label
+    - lvgl.label.update:
+        id: va_status_label
+        text: "Disconnected"

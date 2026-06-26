@@ -17,17 +17,20 @@ script:
             lambda: 'return id(va_is_pulsing);'
           then:
             - lambda: |-
-                int size = 160 + (rand() % 120);  // 160–280px random pulse
+                int size = 190 + (rand() % 60);    // 190–250px
+                int glow = 15  + (rand() % 35);    // 15–50px shadow spread
                 lv_obj_set_width(id(va_mic_button), size);
                 lv_obj_set_height(id(va_mic_button), size);
                 lv_obj_set_style_radius(id(va_mic_button), size / 2, 0);
+                lv_obj_set_style_shadow_width(id(va_mic_button), glow, 0);
                 lv_obj_align(id(va_mic_button), LV_ALIGN_CENTER, 0, 0);
-            - delay: !lambda 'return 80 + (rand() % 350);'
-      # Restore original size when pulsing stops
+            - delay: !lambda 'return 20 + (rand() % 80);'
+      # Restore on stop
       - lambda: |-
           lv_obj_set_width(id(va_mic_button), 220);
           lv_obj_set_height(id(va_mic_button), 220);
           lv_obj_set_style_radius(id(va_mic_button), 110, 0);
+          lv_obj_set_style_shadow_width(id(va_mic_button), 0, 0);
           lv_obj_align(id(va_mic_button), LV_ALIGN_CENTER, 0, 0);
 
 lvgl:
@@ -35,7 +38,7 @@ lvgl:
     - id: main_page
       bg_color: black
       widgets:
-        # Circular mic button — centred on screen, pulses when active
+        # Circular mic button — centred, gradient gives inner-glow sphere look
         - button:
             id: va_mic_button
             align: CENTER
@@ -43,8 +46,15 @@ lvgl:
             width: 220
             height: 220
             radius: 110
-            bg_color: very_dark_gray
-            shadow_opa: transp
+            # Vertical gradient: lighter centre-top → dark edge-bottom
+            bg_color: 0x555555
+            bg_grad_color: very_dark_gray
+            bg_grad_dir: VER
+            # Glow (shadow spreads outward — creates the sphere halo)
+            shadow_color: gray
+            shadow_width: 0
+            shadow_opa: 80%
+            shadow_spread: 8
             border_opa: transp
             pad_all: 0
             on_click:
@@ -82,7 +92,6 @@ lvgl:
             text_color: gray
             hidden: true
 
-# Extend voice_assistant callbacks to update the UI
 voice_assistant:
   on_listening:
     - lambda: 'id(va_is_pulsing) = false;'
@@ -91,17 +100,24 @@ voice_assistant:
         lv_obj_set_width(id(va_mic_button), 220);
         lv_obj_set_height(id(va_mic_button), 220);
         lv_obj_set_style_radius(id(va_mic_button), 110, 0);
+        lv_obj_set_style_shadow_width(id(va_mic_button), 20, 0);
         lv_obj_align(id(va_mic_button), LV_ALIGN_CENTER, 0, 0);
     - lvgl.widget.update:
         id: va_mic_button
-        bg_color: red
+        bg_color: 0xFF6666
+        bg_grad_color: red
+        bg_grad_dir: VER
+        shadow_color: red
     - lvgl.label.update:
         id: va_status_label
         text: "Listening..."
   on_stt_vad_end:
     - lvgl.widget.update:
         id: va_mic_button
-        bg_color: ep_blue
+        bg_color: 0x77AAFF
+        bg_grad_color: ep_blue
+        bg_grad_dir: VER
+        shadow_color: ep_blue
     - lvgl.label.update:
         id: va_status_label
         text: "Thinking..."
@@ -110,7 +126,10 @@ voice_assistant:
   on_tts_start:
     - lvgl.widget.update:
         id: va_mic_button
-        bg_color: ep_green
+        bg_color: 0x77DD99
+        bg_grad_color: ep_green
+        bg_grad_dir: VER
+        shadow_color: ep_green
     - lvgl.label.update:
         id: va_status_label
         text: "Speaking..."
@@ -120,7 +139,10 @@ voice_assistant:
     - lambda: 'id(va_is_pulsing) = false;'
     - lvgl.widget.update:
         id: va_mic_button
-        bg_color: very_dark_gray
+        bg_color: 0x555555
+        bg_grad_color: very_dark_gray
+        bg_grad_dir: VER
+        shadow_color: gray
     - lvgl.label.update:
         id: va_status_label
         text: "Idle"
@@ -128,14 +150,20 @@ voice_assistant:
     - lambda: 'id(va_is_pulsing) = false;'
     - lvgl.widget.update:
         id: va_mic_button
-        bg_color: ep_orange
+        bg_color: 0xFFAA55
+        bg_grad_color: ep_orange
+        bg_grad_dir: VER
+        shadow_color: ep_orange
     - lvgl.label.update:
         id: va_status_label
         text: "Error"
     - delay: 2s
     - lvgl.widget.update:
         id: va_mic_button
-        bg_color: very_dark_gray
+        bg_color: 0x555555
+        bg_grad_color: very_dark_gray
+        bg_grad_dir: VER
+        shadow_color: gray
     - lvgl.label.update:
         id: va_status_label
         text: "Idle"

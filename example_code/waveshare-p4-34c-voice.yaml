@@ -25,7 +25,7 @@ substitutions:
 
   # ----- Backlight -----
   display_daytime_brightness: "100%"
-  display_nighttime_brightness: "30%"
+  display_nighttime_brightness: "60%"
   display_night_hour: "22"        # dim at 22:00
   display_night_minute: "0"
   display_backlight_timeout_always_enabled: "false"
